@@ -6,18 +6,18 @@ import { bindActionCreators } from 'redux';
 
 import { h0 } from '../common/fp';
 import Header from '../common/Header.jsx';
-// import Nav from '../common/Nav.jsx';
-// import List from './List.jsx';
-// import Bottom from './Bottom.jsx';
-// import useNav from '../common/useNav';
+import Nav from '../common/Nav.jsx';
+import List from './List.jsx';
+import Bottom from './Bottom.jsx';
+import useNav from '../common/useNav';
 
 import {
     setFrom,
     setTo,
-    setDepartDate,
-    setHighSpeed,
+    setDepartDate, // 车次时间
+    setHighSpeed, // 高铁动车
     setSearchParsed,
-    setTrainList,
+    setTrainList, //保存车次列表
     setTicketTypes,
     setTrainTypes,
     setDepartStations,
@@ -72,14 +72,13 @@ function App(props) {
         const { from, to, date, highSpeed } = queries;
         dispatch(setFrom(from));
         dispatch(setTo(to));
-        dispatch(setDepartDate(ho(dayjs(date).valueOf()))); //确保是选中当天0时0分
+        dispatch(setDepartDate(h0(dayjs(date).valueOf()))); //确保是选中当天0时0分
         dispatch(setHighSpeed(highSpeed === 'true'));
         dispatch(setSearchParsed(true)); //判断参数是否已经被解析
     }, []);
 
     // 请求车次数据
     useEffect(() => {
-        return;
         if (!searchParsed) {
             return;
         }
@@ -130,7 +129,7 @@ function App(props) {
                     },
                 } = result;
 
-                dispatch(setTrainList(trains));
+                dispatch(setTrainList(trains)); // 获取车次列表
                 dispatch(setTicketTypes(ticketType));
                 dispatch(setTrainTypes(trainType));
                 dispatch(setDepartStations(depStation));
@@ -159,12 +158,13 @@ function App(props) {
         window.history.back();
     }, []);
 
-    // const { isPrevDisabled, isNextDisabled, prev, next } = useNav(
-    //     departDate,
-    //     dispatch,
-    //     prevDate,
-    //     nextDate
-    // );
+    // 导出  isPrevDisabled, isNextDisabled, prev, next
+    const { isPrevDisabled, isNextDisabled, prev, next } = useNav(
+        departDate,
+        dispatch,
+        prevDate,
+        nextDate
+    );
 
     const bottomCbs = useMemo(() => {
         return bindActionCreators(
@@ -195,15 +195,15 @@ function App(props) {
             <div className="header-wrapper">
                 <Header title={`${from} ⇀ ${to}`} onBack={onBack} />
             </div>
-            {/* <Nav
+            <Nav
                 date={departDate}
                 isPrevDisabled={isPrevDisabled}
                 isNextDisabled={isNextDisabled}
                 prev={prev}
                 next={next}
-            /> */}
-            {/* <List list={trainList} /> */}
-            {/* <Bottom
+            />
+            <List list={trainList} />
+            <Bottom
                 highSpeed={highSpeed}
                 orderType={orderType}
                 onlyTickets={onlyTickets}
@@ -221,7 +221,7 @@ function App(props) {
                 arriveTimeStart={arriveTimeStart}
                 arriveTimeEnd={arriveTimeEnd}
                 {...bottomCbs}
-            /> */}
+            />
         </div>
     );
 }

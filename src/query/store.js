@@ -14,7 +14,7 @@ export default createStore(
         departDate: h0(Date.now()),
         highSpeed: false,
         trainList: [],
-        orderType: ORDER_DEPART,
+        orderType: ORDER_DEPART, // 1  |  2
         onlyTickets: false,
         ticketTypes: [],
         checkedTicketTypes: {},

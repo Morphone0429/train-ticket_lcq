@@ -48,7 +48,7 @@ export function setHighSpeed(highSpeed) {
         payload: highSpeed,
     };
 }
-
+// 切换 只看高铁动车
 export function toggleHighSpeed() {
     return (dispatch, getState) => {
         const { highSpeed } = getState();
@@ -62,18 +62,19 @@ export function setTrainList(trainList) {
         payload: trainList,
     };
 }
+// 切换 出发/耗时
 export function toggleOrderType() {
     return (dispatch, getState) => {
         const { orderType } = getState();
         if (orderType === ORDER_DEPART) {
             dispatch({
                 type: ACTION_SET_ORDER_TYPE,
-                payload: ORDER_DURATION,
+                payload: ORDER_DURATION, //  2
             });
         } else {
             dispatch({
                 type: ACTION_SET_ORDER_TYPE,
-                payload: ORDER_DEPART,
+                payload: ORDER_DEPART, // 1
             });
         }
     };
@@ -160,10 +161,10 @@ export function setArriveTimeEnd(arriveTimeEnd) {
         payload: arriveTimeEnd,
     };
 }
+// 切换条件过滤model
 export function toggleIsFiltersVisible() {
     return (dispatch, getState) => {
         const { isFiltersVisible } = getState();
-
         dispatch({
             type: ACTION_SET_IS_FILTERS_VISIBLE,
             payload: !isFiltersVisible,
@@ -176,7 +177,7 @@ export function setSearchParsed(searchParsed) {
         payload: searchParsed,
     };
 }
-
+// 明天
 export function nextDate() {
     return (dispatch, getState) => {
         const { departDate } = getState();
@@ -184,6 +185,7 @@ export function nextDate() {
         dispatch(setDepartDate(h0(departDate) + 86400 * 1000));
     };
 }
+// 昨天
 export function prevDate() {
     return (dispatch, getState) => {
         const { departDate } = getState();

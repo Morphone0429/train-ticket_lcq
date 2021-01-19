@@ -1,16 +1,15 @@
 import React, { useMemo, memo } from 'react';
-import PropTypes from 'prop-types';
+import Proptypes from 'prop-types';
 import classnames from 'classnames';
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
 import './Nav.css';
 
-const Nav = memo(function Nav(props) {
-    const { date, prev, next, isPrevDisabled, isNextDisabled } = props;
-
+const Nav = memo(props => {
+    const { date, isNextDisabled, isPrevDisabled, next, prev } = props;
     const currentString = useMemo(() => {
         const d = dayjs(date);
-        return d.format('M月D日 ') + d.locale('zh-cn').format('ddd');
+        return d.format('M月D日') + d.locale('zh-cn').format('ddd'); //格式为 1月19日周二
     }, [date]);
 
     return (
@@ -23,7 +22,7 @@ const Nav = memo(function Nav(props) {
             >
                 前一天
             </span>
-            <span className="nav-current">{currentString}</span>
+            <span>{currentString}</span>
             <span
                 onClick={next}
                 className={classnames('nav-next', {
@@ -37,11 +36,10 @@ const Nav = memo(function Nav(props) {
 });
 
 export default Nav;
-
 Nav.propTypes = {
-    date: PropTypes.number.isRequired,
-    prev: PropTypes.func.isRequired,
-    next: PropTypes.func.isRequired,
-    isPrevDisabled: PropTypes.bool.isRequired,
-    isNextDisabled: PropTypes.bool.isRequired,
+    date: Proptypes.number.isRequired,
+    isNextDisabled: Proptypes.bool.isRequired,
+    isPrevDisabled: Proptypes.bool.isRequired,
+    next: Proptypes.func.isRequired,
+    prev: Proptypes.func.isRequired,
 };

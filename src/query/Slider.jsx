@@ -1,117 +1,74 @@
-import React, { memo, useState, useMemo, useRef, useEffect } from 'react';
+import React, { memo, useRef, useState, useMemo, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import leftPad from 'left-pad';
 import useWinSize from '../common/useWinSize';
 import './Slider.css';
-
-const Slider = memo(function Slider(props) {
+const Slider = props => {
     const {
         title,
-        currentStartHours,
-        currentEndHours,
+        currentStartHours, // 开始的小时
+        currentEndHours, // 结束的小时
         onStartChanged,
         onEndChanged,
     } = props;
+    const winSize = useWinSize(); // 获取宽度
 
-    const winSize = useWinSize();
+    const startHandle = useRef(); // 开始圆点 ref
+    const endHandle = useRef(); // 结束圆点 ref
 
-    const startHandle = useRef();
-    const endHandle = useRef();
+    const lastStartX = useRef(); // x轴 左侧开始 坐标  ref相当于this
+    const lastEndX = useRef(); // x轴 右侧结束 坐标   ref相当于this
 
-    const lastStartX = useRef();
-    const lastEndX = useRef();
+    const range = useRef(); // 滑动条ref
+    const rangeWidth = useRef(); //滑动条宽度
 
-    const range = useRef();
-    const rangeWidth = useRef();
+    const preCurrentStartHours = useRef(currentStartHours);
+    const preCurrentEndHours = useRef(currentEndHours);
 
-    const prevCurrentStartHours = useRef(currentStartHours);
-    const prevCurrentEndHours = useRef(currentEndHours);
+    const [start, setStart] = useState(() => (currentStartHours / 24) * 100); // 开始  百分比
+    const [end, setEnd] = useState(() => (currentEndHours / 24) * 100); // 结束  百分比
 
-    const [start, setStart] = useState(() => (currentStartHours / 24) * 100);
-    const [end, setEnd] = useState(() => (currentEndHours / 24) * 100);
-
-    if (prevCurrentStartHours.current !== currentStartHours) {
+    // 保存最新的state  确保是最新的state
+    if (preCurrentStartHours.current !== currentStartHours) {
         setStart((currentStartHours / 24) * 100);
-        prevCurrentStartHours.current = currentStartHours;
+        preCurrentStartHours.current = currentStartHours;
     }
 
-    if (prevCurrentEndHours.current !== currentEndHours) {
+    // 保存最新的state
+    if (preCurrentEndHours.current !== currentEndHours) {
         setEnd((currentEndHours / 24) * 100);
-        prevCurrentEndHours.current = currentEndHours;
+        preCurrentEndHours.current = currentEndHours;
     }
 
-    const startPercent = useMemo(() => {
-        if (start > 100) {
-            return 100;
-        }
-
-        if (start < 0) {
-            return 0;
-        }
-
-        return start;
-    }, [start]);
-
-    const endPercent = useMemo(() => {
-        if (end > 100) {
-            return 100;
-        }
-
-        if (end < 0) {
-            return 0;
-        }
-
-        return end;
-    }, [end]);
-
-    const startHours = useMemo(() => {
-        return Math.round((startPercent * 24) / 100);
-    }, [startPercent]);
-
-    const endHours = useMemo(() => {
-        return Math.round((endPercent * 24) / 100);
-    }, [endPercent]);
-
-    const startText = useMemo(() => {
-        return leftPad(startHours, 2, '0') + ':00';
-    }, [startHours]);
-
-    const endText = useMemo(() => {
-        return leftPad(endHours, 2, '0') + ':00';
-    }, [endHours]);
-
-    function onStartTouchBegin(e) {
-        const touch = e.targetTouches[0];
+    const onStartTouchBegin = e => {
+        const touch = e.targetTouches[0]; //当前对象上所有触摸点的列表;
         lastStartX.current = touch.pageX;
-    }
-
-    function onEndTouchBegin(e) {
-        const touch = e.targetTouches[0];
-        lastEndX.current = touch.pageX;
-    }
-
-    function onStartTouchMove(e) {
-        const touch = e.targetTouches[0];
+    };
+    const onStartTouchMove = e => {
+        const touch = e.targetTouches[0]; // 距离开始滑动的距离差   本次的pageX - 开始时的pageX
         const distance = touch.pageX - lastStartX.current;
         lastStartX.current = touch.pageX;
-
-        setStart(start => start + (distance / rangeWidth.current) * 100);
-    }
-
-    function onEndTouchMove(e) {
-        const touch = e.targetTouches[0];
+        setStart(start => start + (distance / rangeWidth.current) * 100); // 累加百分比 更新start 数据
+    };
+    const onEndTouchBegin = e => {
+        const touch = e.targetTouches[0]; //当前对象上所有触摸点的列表;
+        lastEndX.current = touch.pageX;
+    };
+    const onEndTouchMove = e => {
+        const touch = e.targetTouches[0]; // 距离开始滑动的距离差   本次的pageX - 开始时的pageX
         const distance = touch.pageX - lastEndX.current;
         lastEndX.current = touch.pageX;
+        setEnd(end => end + (distance / rangeWidth.current) * 100); // 累加百分比 更新start 数据
+    };
 
-        setEnd(end => end + (distance / rangeWidth.current) * 100);
-    }
-
+    // 获取 滑动条宽度
     useEffect(() => {
         rangeWidth.current = parseFloat(
             window.getComputedStyle(range.current).width
         );
     }, [winSize.width]);
 
+    // 绑定 touchstart  touchmove事件
     useEffect(() => {
         startHandle.current.addEventListener(
             'touchstart',
@@ -129,7 +86,6 @@ const Slider = memo(function Slider(props) {
             false
         );
         endHandle.current.addEventListener('touchmove', onEndTouchMove, false);
-
         return () => {
             startHandle.current.removeEventListener(
                 'touchstart',
@@ -152,14 +108,53 @@ const Slider = memo(function Slider(props) {
                 false
             );
         };
-    });
+    }, []);
 
+    // startHours 改变 触发更新
     useEffect(() => {
         onStartChanged(startHours);
-    }, [startHours]);
+    }, [start]);
 
+    // endHours 改变触发更新
     useEffect(() => {
         onEndChanged(endHours);
+    }, [end]);
+
+    const startPercent = useMemo(() => {
+        if (start > 100) {
+            return 100;
+        }
+        if (start < 0) {
+            return 0;
+        }
+        return start;
+    }, [start]);
+
+    const endPercent = useMemo(() => {
+        if (end > 100) {
+            return 100;
+        }
+        if (end < 0) {
+            return 0;
+        }
+        return end;
+    }, [end]);
+
+    // 取整
+    const startHours = useMemo(() => {
+        return Math.round((startPercent * 24) / 100);
+    }, [startPercent]);
+
+    const endHours = useMemo(() => {
+        return Math.round((endPercent * 24) / 100);
+    }, [endPercent]);
+
+    // 显示小时文字
+    const startText = useMemo(() => {
+        return leftPad(startHours, 2, '0') + ':00';
+    }, [startHours]);
+    const endText = useMemo(() => {
+        return leftPad(endHours, 2, '0') + ':00';
     }, [endHours]);
 
     return (
@@ -177,18 +172,14 @@ const Slider = memo(function Slider(props) {
                     <i
                         ref={startHandle}
                         className="slider-handle"
-                        style={{
-                            left: startPercent + '%',
-                        }}
+                        style={{ left: startPercent + '%' }}
                     >
                         <span>{startText}</span>
                     </i>
                     <i
                         ref={endHandle}
                         className="slider-handle"
-                        style={{
-                            left: endPercent + '%',
-                        }}
+                        style={{ left: endPercent + '%' }}
                     >
                         <span>{endText}</span>
                     </i>
@@ -196,7 +187,7 @@ const Slider = memo(function Slider(props) {
             </div>
         </div>
     );
-});
+};
 
 Slider.propTypes = {
     title: PropTypes.string.isRequired,
